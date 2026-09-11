@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+
 export default function RegistrationForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [slug, setSlug] = useState("");
@@ -28,14 +30,18 @@ export default function RegistrationForm() {
     setSubmitting(true);
     setMessage("");
     try {
-      const response = await fetch("/api/register", {
+      if (!apiBaseUrl) {
+        setMessage("This service is temporarily unavailable. Please try again later.");
+        return;
+      }
+      const response = await fetch(`${apiBaseUrl}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-group-slug": "www" },
         body: JSON.stringify(payload),
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        setMessage(result.message || "Registration could not be completed. Please try again.");
+        setMessage((typeof result?.message === "string" && result.message) || "Registration could not be completed. Please try again.");
         return;
       }
       form.reset();
@@ -56,14 +62,18 @@ export default function RegistrationForm() {
     setSubmitting(true);
     setMessage("");
     try {
-      const response = await fetch("/api/verify", {
+      if (!apiBaseUrl) {
+        setMessage("This service is temporarily unavailable. Please try again later.");
+        return;
+      }
+      const response = await fetch(`${apiBaseUrl}/user/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-group-slug": "www" },
         body: JSON.stringify({ phone: registeredPhone, otp: data.get("otp") }),
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        setMessage(result.message || "Verification could not be completed. Please try again.");
+        setMessage((typeof result?.message === "string" && result.message) || "Verification could not be completed. Please try again.");
         return;
       }
       setVerified(true);
