@@ -10,6 +10,7 @@ export default function RegistrationForm() {
 
   const [submitting, setSubmitting] = useState(false);
   const [registeredPhone, setRegisteredPhone] = useState("");
+  const [verified, setVerified] = useState(false);
   const pending = useRef(false);
   const otpInput = useRef<HTMLInputElement>(null);
 
@@ -47,12 +48,47 @@ export default function RegistrationForm() {
     }
   }
 
-  if (registeredPhone) return <form className="registration-form" onSubmit={event => event.preventDefault()} aria-labelledby="otp-title">
+  async function handleVerify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending.current) return;
+    const data = new FormData(event.currentTarget);
+    pending.current = true;
+    setSubmitting(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-group-slug": "www" },
+        body: JSON.stringify({ phone: registeredPhone, otp: data.get("otp") }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setMessage(result.message || "Verification could not be completed. Please try again.");
+        return;
+      }
+      setVerified(true);
+    } catch {
+      setMessage("We couldn’t connect to the verification service. Please try again.");
+    } finally {
+      pending.current = false;
+      setSubmitting(false);
+    }
+  }
+
+  if (verified) return <div className="registration-form" role="status">
+    <h2>Phone number verified</h2>
+    <p className="otp-description">Your phone number +63 {registeredPhone} has been verified successfully.</p>
+    <a className="button" href="/">Back to home <ArrowRight size={18}/></a>
+  </div>;
+
+  if (registeredPhone) return <form className="registration-form" onSubmit={handleVerify} aria-labelledby="otp-title" aria-busy={submitting}>
     <h2 id="otp-title">Check your phone</h2>
-    <p className="otp-description" role="status">Check your phone number for the OTP sent to +63 {registeredPhone}.</p>
-    <div className="form-field"><label htmlFor="otp">One-time password (OTP)</label><input ref={otpInput} id="otp" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]+" required aria-describedby="otp-help"/></div>
-    <p id="otp-help" className="field-help">Phone verification will be available here soon.</p>
-    <button className="button registration-submit" type="submit" disabled>Verify phone number <ArrowRight size={18}/></button>
+    <p className="otp-description">Check your phone number for the OTP sent to +63 {registeredPhone}.</p>
+    <div className="form-field"><label htmlFor="verify-phone">Phone number</label><div className="phone-input"><span id="verify-phone-prefix">+63</span><input id="verify-phone" name="phone" type="tel" autoComplete="tel-national" value={registeredPhone} readOnly aria-describedby="verify-phone-prefix"/></div></div>
+    <div className="form-field"><label htmlFor="otp">One-time password (OTP)</label><input ref={otpInput} id="otp" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]+" required disabled={submitting} aria-describedby="otp-help"/></div>
+    <p id="otp-help" className="field-help">Enter the code you received on your phone.</p>
+    <button className="button registration-submit" type="submit" disabled={submitting}>{submitting ? "Verifying…" : "Verify phone number"} <ArrowRight size={18}/></button>
+    {message && <p className="registration-message" role="alert">{message}</p>}
   </form>;
 
   return <form className="registration-form" onSubmit={handleSubmit} aria-busy={submitting}>
