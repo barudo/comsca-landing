@@ -1,16 +1,16 @@
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, HeartHandshake, Sprout, Users, Wallet, ShieldCheck } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChartNoAxesCombined, Sprout, Users, NotebookPen, ShieldCheck } from "lucide-react";
 
 const benefits = [
-  { number: "01", icon: Wallet, title: "Make saving a habit", description: "Small contributions can make a meaningful difference. Save regularly with your group and build a fund for the things that matter.", tag: "Small steps. Lasting progress." },
-  { number: "02", icon: Sprout, title: "Open new possibilities", description: "Access loans from your group’s pooled savings to support a livelihood, meet household needs, or take the next step toward your goals.", tag: "Local savings. Local opportunity." },
-  { number: "03", icon: HeartHandshake, title: "Grow stronger, together", description: "Be part of a community that looks out for each other. A shared social fund can help members through emergencies and unexpected needs.", tag: "A little support goes a long way." },
+  { number: "01", icon: NotebookPen, title: "Keep activities in one place", description: "Record your COMSCA group’s activities online. Keep a clear history of what happens in your group, so it’s easier to stay organized and look back when you need to.", tag: "Every activity. A clearer record." },
+  { number: "02", icon: ChartNoAxesCombined, title: "See your group’s progress", description: "Turn your group’s records into useful views of how it’s doing over time. Follow your progress, spot patterns, and see how your shared efforts add up.", tag: "Clear views. Meaningful progress." },
+  { number: "03", icon: Users, title: "Move forward together", description: "Bring a clearer picture of your group to every discussion. Use your records and progress views to celebrate milestones and plan your next steps together.", tag: "Better insight. Shared decisions." },
 ];
 
 function CommunityIllustration() {
   return <div className="illustration" role="img" aria-label="Illustration of a community growing their shared savings, with a savings jar and flourishing plant">
     <div className="orbit orbit-one" /><div className="orbit orbit-two" />
     <span className="spark spark-one">✦</span><span className="spark spark-two">✦</span><span className="little-dot" />
-    <div className="floating-note community-note"><span className="note-icon"><Users size={20}/></span><span>Rooted in community<strong>Growing together</strong></span></div>
+    <div className="floating-note community-note"><span className="note-icon"><Users size={20}/></span><span>Your group’s activities<strong>Organized in one place</strong></span></div>
     <svg className="savings-art" viewBox="0 0 500 430" fill="none" aria-hidden="true">
       <ellipse cx="250" cy="376" rx="164" ry="17" fill="#DCE9FF"/>
       <path d="M303 300V163" stroke="#2058B8" strokeWidth="7" strokeLinecap="round"/>
@@ -33,8 +33,8 @@ function CommunityIllustration() {
       <rect x="87" y="344" width="43" height="12" rx="5" fill="#B3CFF8"/>
       <rect x="91" y="333" width="43" height="12" rx="5" fill="#D3E3FA"/>
     </svg>
-    <div className="floating-note savings-note"><span className="success-icon"><Check size={18}/></span><span>A little today.<strong>A brighter tomorrow.</strong></span></div>
-    <div className="art-caption"><span /> Built on trust. Grown together.</div>
+    <div className="floating-note savings-note"><span className="success-icon"><Check size={18}/></span><span>See your progress.<strong>Plan your next steps.</strong></span></div>
+    <div className="art-caption"><span /> Your records. Your progress. Together.</div>
   </div>;
 }
 
@@ -43,25 +43,25 @@ export default function Home() {
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header"><nav className="nav container" aria-label="Main navigation">
       <a href="#" className="brand" aria-label="COMSCA home"><span className="brand-icon"><Sprout size={25} strokeWidth={2.2}/></span>comsca<span className="brand-period">.</span></a>
-      <div className="nav-links"><a href="#about">About COMSCA</a><a href="#benefits">The benefits</a></div>
-      <a className="nav-cta" href="https://comsca.worldvision.org.ph/contact/" target="_blank" rel="noreferrer">Get involved <ArrowUpRight size={16}/></a>
+      <div className="nav-links"><a href="/services">Our Services</a><a href="#benefits">The benefits</a></div>
+      <a className="nav-cta" href="/register">Create your group <ArrowUpRight size={16}/></a>
     </nav></header>
     <main id="main" className="container">
       <section className="hero" id="about" aria-labelledby="hero-title">
-        <div className="hero-copy"><div className="eyebrow"><span/> PEOPLE. PURPOSE. POSSIBILITIES.</div>
-          <h1 id="hero-title">Small savings.<br/>Stronger<br/><span>communities.</span></h1>
-          <p className="hero-description">Big change starts with what we can do together. COMSCA brings people together to save, support one another, and build a more secure future.</p>
-          <div className="hero-actions"><a className="button" href="#benefits">Discover the benefits <ArrowRight size={18}/></a><a className="text-link" href="https://comsca.worldvision.org.ph/about/" target="_blank" rel="noreferrer">How it works <ArrowUpRight size={16}/></a></div>
-          <div className="trust-line"><ShieldCheck size={17}/><span>Community-owned. Member-managed. Together, for everyone.</span></div>
+        <div className="hero-copy"><div className="eyebrow"><span/> ONLINE TOOLS FOR COMSCA GROUPS.</div>
+          <h1 id="hero-title">Clear records.<br/>Stronger<br/><span>groups.</span></h1>
+          <p className="hero-description">COMSCA is a digital savings and credit management platform that helps community groups manage members, savings, loans, repayments, financial records, and cycle distributions in one secure system.</p>
+          <div className="hero-actions"><a className="button" href="/register">Create your group <ArrowRight size={18}/></a><a className="text-link" href="/services">See Features <ArrowRight size={18}/></a></div>
+          <div className="trust-line"><ShieldCheck size={17}/><span>Built for COMSCA groups. Focused on your shared progress.</span></div>
         </div>
         <CommunityIllustration/>
       </section>
       <section className="benefits" id="benefits" aria-labelledby="benefits-title">
-        <div className="section-heading"><div><div className="eyebrow">A SIMPLE IDEA. A SHARED FUTURE.</div><h2 id="benefits-title">Better together, in every way.</h2></div><p>COMSCA stands for <strong>Community Managed Savings and Credit Association.</strong> It’s a locally run savings group that puts the power of progress in its members’ hands.</p></div>
+        <div className="section-heading"><div><div className="eyebrow">RECORD. UNDERSTAND. GROW.</div><h2 id="benefits-title">Help your group thrive.</h2></div><p>Your group puts in the work. <strong>Our service helps you see the progress.</strong> Bring your activities and insights together online to support the way you manage and grow your COMSCA group.</p></div>
         <div className="benefit-grid">{benefits.map(({number, icon: Icon, title, description, tag}) => <article className="benefit-card" key={number}><div className="card-top"><span className="card-icon"><Icon size={25} strokeWidth={1.6}/></span><span className="card-number">{number}</span></div><h3>{title}</h3><p>{description}</p><div className="card-tag"><span/> {tag}</div></article>)}</div>
-        <div className="closing-note"><Users size={16}/><span>When we save together, we move forward together.</span><ArrowDown size={14}/></div>
+        <div className="closing-note"><Users size={16}/><span>A clearer picture today. A stronger group tomorrow.</span><ArrowDown size={14}/></div>
       </section>
     </main>
-    <footer className="footer"><div className="container footer-row"><a href="#" className="brand footer-brand"><span className="brand-icon"><Sprout size={19}/></span>comsca.</a><span className="footer-message">Small beginnings. Shared possibilities.</span><span className="copyright">© {new Date().getFullYear()} COMSCA</span><a href="https://comsca.worldvision.org.ph/" target="_blank" rel="noreferrer">Explore the COMSCA Network <ArrowUpRight size={14}/></a></div></footer>
+    <footer className="footer"><div className="container footer-row"><a href="#" className="brand footer-brand"><span className="brand-icon"><Sprout size={19}/></span>comsca.</a><span className="footer-message">Clear records. Shared progress.</span><span className="copyright">© {new Date().getFullYear()} COMSCA</span><a href="/services">Explore the features <ArrowUpRight size={14}/></a></div></footer>
   </>;
 }
