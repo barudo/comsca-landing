@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
+import { getRegistrationPayload, validateRegistrationPayload } from "./registration-payload";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 
@@ -12,6 +13,7 @@ export default function RegistrationForm() {
 
   const [submitting, setSubmitting] = useState(false);
   const [registeredPhone, setRegisteredPhone] = useState("");
+  const [registeredSlug, setRegisteredSlug] = useState("");
   const [verified, setVerified] = useState(false);
   const pending = useRef(false);
   const otpInput = useRef<HTMLInputElement>(null);
@@ -25,7 +27,12 @@ export default function RegistrationForm() {
     if (pending.current) return;
     const form = event.currentTarget;
     const data = new FormData(form);
-    const payload = Object.fromEntries(["firstname", "lastname", "phone", "groupName", "slug", "password"].map(key => [key, data.get(key)]));
+    const payload = getRegistrationPayload(data);
+    const validationMessage = validateRegistrationPayload(payload);
+    if (validationMessage) {
+      setMessage(validationMessage);
+      return;
+    }
     pending.current = true;
     setSubmitting(true);
     setMessage("");
@@ -41,10 +48,11 @@ export default function RegistrationForm() {
       });
       const result = await response.json().catch(() => null);
       if (!response.ok) {
-        setMessage((typeof result?.message === "string" && result.message) || "Registration could not be completed. Please try again.");
+        setMessage((typeof result?.error === "string" && result.error) || (typeof result?.message === "string" && result.message) || "Registration could not be completed. Please try again.");
         return;
       }
       form.reset();
+      setRegisteredSlug(payload.slug);
       setRegisteredPhone(String(payload.phone));
     } catch {
       setMessage("We couldn’t connect to the registration service. Please try again.");
@@ -72,8 +80,8 @@ export default function RegistrationForm() {
         body: JSON.stringify({ phone: registeredPhone, otp: data.get("otp") }),
       });
       const result = await response.json().catch(() => null);
-      if (!response.ok) {
-        setMessage((typeof result?.message === "string" && result.message) || "Verification could not be completed. Please try again.");
+      if (!response.ok || result?.success === false) {
+        setMessage((typeof result?.error === "string" && result.error) || (typeof result?.message === "string" && result.message) || "Verification could not be completed. Please try again.");
         return;
       }
       setVerified(true);
@@ -88,7 +96,7 @@ export default function RegistrationForm() {
   if (verified) return <div className="registration-form" role="status">
     <h2>Phone number verified</h2>
     <p className="otp-description">Your phone number +63 {registeredPhone} has been verified successfully.</p>
-    <a className="button" href="/">Back to home <ArrowRight size={18}/></a>
+    <a className="button" href={`https://${registeredSlug}.comsca.com`}>Go to {registeredSlug}.comsca.com <ArrowRight size={18}/></a>
   </div>;
 
   if (registeredPhone) return <form className="registration-form" onSubmit={handleVerify} aria-labelledby="otp-title" aria-busy={submitting}>
@@ -109,7 +117,7 @@ export default function RegistrationForm() {
         <div className="form-field"><label htmlFor="lastname">Last name</label><input id="lastname" name="lastname" autoComplete="family-name" required maxLength={100}/></div>
       </div>
       <div className="form-field"><label htmlFor="phone">Phone number</label><div className="phone-input"><span id="phone-prefix">+63</span><input id="phone" name="phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="9171234567" required pattern="[0-9]{10}" minLength={10} maxLength={10} title="Enter your 10-digit phone number without +63 or the leading 0." aria-describedby="phone-prefix phone-help"/></div><p id="phone-help" className="field-help">Enter 10 digits, without the country code or leading 0.</p></div>
-      <div className="form-field"><label htmlFor="password">Password</label><div className="password-input"><input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} required aria-describedby="password-help"/><button type="button" onClick={() => setShowPassword(!showPassword)} aria-controls="password" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div><p id="password-help" className="field-help">Use at least 8 characters.</p></div>
+      <div className="form-field"><label htmlFor="password">Password</label><div className="password-input"><input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} required aria-describedby="password-help"/><button type="button" onClick={() => setShowPassword(!showPassword)} aria-controls="password" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div><p id="password-help" className="field-help">Use at least 8 characters, up to 72 bytes. Emoji and accented letters may count as multiple bytes.</p></div>
     </fieldset>
     <fieldset disabled={submitting}>
       <legend>Your COMSCA group</legend>
