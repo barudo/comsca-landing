@@ -34,7 +34,7 @@ export default function RegistrationForm() {
     const timeout = setTimeout(async () => {
       try {
         if (!apiBaseUrl) throw new Error("API URL is not configured");
-        const response = await fetch(`${apiBaseUrl}/groups/validae-slug?slug=${encodeURIComponent(slug)}`, {
+        const response = await fetch(`${apiBaseUrl}/groups/validate-slug?slug=${encodeURIComponent(slug)}`, {
           method: "GET",
           headers: { "x-group-slug": "www" },
           signal: controller.signal,
