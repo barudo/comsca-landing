@@ -9,7 +9,10 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 export default function RegistrationForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [slug, setSlug] = useState("");
+  const [slugCheck, setSlugCheck] = useState<{ slug: string; status: "available" | "unavailable" | "error" } | null>(null);
+  const slugStatus = slug.length >= 3 ? (slugCheck?.slug === slug ? slugCheck.status : "checking") : null;
   const [message, setMessage] = useState("");
+  const [hasRequiredFields, setHasRequiredFields] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [registeredPhone, setRegisteredPhone] = useState("");
@@ -17,10 +20,42 @@ export default function RegistrationForm() {
   const [verified, setVerified] = useState(false);
   const pending = useRef(false);
   const otpInput = useRef<HTMLInputElement>(null);
+  const registrationDisabled = submitting || !hasRequiredFields || !slug.trim() || slugStatus === "unavailable";
 
   useEffect(() => {
     if (registeredPhone) otpInput.current?.focus();
   }, [registeredPhone]);
+
+  useEffect(() => {
+    setSlugCheck(null);
+    if (slug.length < 3 || registeredPhone) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      try {
+        if (!apiBaseUrl) throw new Error("API URL is not configured");
+        const response = await fetch(`${apiBaseUrl}/groups/validae-slug?slug=${encodeURIComponent(slug)}`, {
+          method: "GET",
+          headers: { "x-group-slug": "www" },
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (controller.signal.aborted) return;
+        setSlugCheck({
+          slug,
+          status: result?.success === false ? "unavailable" : response.ok && result?.success === true ? "available" : "error",
+        });
+      } catch {
+        if (!controller.signal.aborted) setSlugCheck({ slug, status: "error" });
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [slug, registeredPhone]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,6 +66,10 @@ export default function RegistrationForm() {
     const validationMessage = validateRegistrationPayload(payload);
     if (validationMessage) {
       setMessage(validationMessage);
+      return;
+    }
+    if (slugStatus === "unavailable") {
+      setMessage("This slug is no longer available. Please choose another.");
       return;
     }
     pending.current = true;
@@ -109,7 +148,13 @@ export default function RegistrationForm() {
     {message && <p className="registration-message" role="alert">{message}</p>}
   </form>;
 
-  return <form className="registration-form" onSubmit={handleSubmit} aria-busy={submitting}>
+  return <form className="registration-form" onSubmit={handleSubmit} onChange={(event) => {
+    const data = new FormData(event.currentTarget);
+    setHasRequiredFields(["firstname", "lastname", "phone", "password", "groupName"].every((name) => {
+      const value = data.get(name);
+      return typeof value === "string" && value.trim().length > 0;
+    }));
+  }} aria-busy={submitting}>
     <fieldset disabled={submitting}>
       <legend>Your account</legend>
       <div className="form-row">
@@ -129,9 +174,9 @@ export default function RegistrationForm() {
         .replace(/^-+|-+$/g, "")
         .slice(0, 63)
         .replace(/-+$/g, ""))} autoComplete="organization" placeholder="e.g. Mabuhay Savings Group" required maxLength={150}/></div>
-      <div className="form-field"><label htmlFor="slug">Group address (slug)</label><div className="slug-input"><input id="slug" name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} placeholder="mabuhay" autoCapitalize="none" autoCorrect="off" spellCheck={false} required minLength={3} maxLength={63} pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Use lowercase letters, numbers, and hyphens, with no hyphen at the start or end." aria-describedby="slug-help slug-suffix"/><span id="slug-suffix">.comsca.com</span></div><p id="slug-help" className="field-help">Choose 3–63 lowercase letters, numbers, or hyphens. Start and end with a letter or number.</p></div>
+      <div className="form-field"><label htmlFor="slug">Group address (slug)</label><div className="slug-input"><input id="slug" name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} placeholder="mabuhay" autoCapitalize="none" autoCorrect="off" spellCheck={false} required minLength={3} maxLength={63} pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Use lowercase letters, numbers, and hyphens, with no hyphen at the start or end." aria-describedby="slug-help slug-suffix slug-availability" aria-invalid={slugStatus === "unavailable"}/><span id="slug-suffix">.comsca.com</span></div><p id="slug-availability" className={`field-help${slugStatus === "unavailable" ? " slug-unavailable" : ""}`} role="status" aria-live="polite">{slugStatus === "checking" ? "Checking slug availability…" : slugStatus === "unavailable" ? "This slug is no longer available. Please choose another." : slugStatus === "available" ? "This slug is available." : slugStatus === "error" ? "Couldn’t check slug availability. Please try again." : ""}</p><p id="slug-help" className="field-help">Choose 3–63 lowercase letters, numbers, or hyphens. Start and end with a letter or number.</p></div>
     </fieldset>
-    <button className="button registration-submit" type="submit" disabled={submitting}>{submitting ? "Creating your account…" : "Create account & group"} <ArrowRight size={18}/></button>
+    <button className="button registration-submit" type="submit" disabled={registrationDisabled}>{submitting ? "Creating your account…" : "Create account & group"} <ArrowRight size={18}/></button>
     {message && <p className="registration-message" role="status">{message}</p>}
   </form>;
 }
